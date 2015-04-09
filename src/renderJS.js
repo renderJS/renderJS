@@ -125,17 +125,17 @@
     tag: "div",
     afterAppend: function(scenario){
       var w = $(this).parents().first().width();
-      var div = $("<div>").css({
-        "position": "relative",
-        "top": "50%",
-        "left": "50%",
-        "width": (w/2) + "px",
-        "margin": "0 0 0 -" + (w/4) + "px",
-        "height": "0px",
-        "display": "flex",
-        "justify-content": "center",
-        "align-items": "center",
-      });
+      var div = $("<div>").attr("style", "display: -webkit-flex; display: flex")
+                          .css({
+                            "position": "relative",
+                            "top": "50%",
+                            "left": "50%",
+                            "width": (w/2) + "px",
+                            "margin": "0 0 0 -" + (w/4) + "px",
+                            "height": "0px",
+                            "justify-content": "center",
+                            "align-items": "center",
+                          });
       $(this).wrap(div);
     }
   }
