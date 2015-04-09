@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<head>
+  <meta charset="UTF-8">
+  <script src="http://code.jquery.com/jquery-2.1.3.min.js" type="text/javascript" charset="utf-8"></script>
+  <style>
+    .div1{
+      width: 200px;
+      height: 200px;
+      background: gray;
+    }
+    .div2{
+      margin-top: 10px;
+      width: 100%;
+      height: 150px;
+      background: cyan;
+    }
+    .abs1{
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: blue;
+      top: 40px;
+      left: 810px;
+    }
+    .abs2{
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: yellow;
+      top: 60px;
+      left: 260px;
+    }
+    .abs3{
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background: black;
+      top: 40px;
+      left: 600px;
+    }
+  </style>
+</head>
+<body>
+<div class="div1"></div>
+<div class="div2"></div>
+<div class="abs1"></div>
+<div class="abs2"></div>
+<div class="abs3"></div>
+</body>
+
+<!--renderJS example -->
+<script src="../../src/renderJS.js" type="text/javascript" charset="utf-8"></script>
+<script>
+  $("div").renderJS_obj([
+    {
+      type: "center",
+      text: "Hello World",
+      css: {
+        background: "red",
+      },
+    }
+  ]);
+</script>
