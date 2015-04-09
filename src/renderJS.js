@@ -1,81 +1,71 @@
-/*    
-@licstart  The following is the entire license notice for the 
-JavaScript code in this page.
-
-Copyright (C) 2015  Jose Ricardo Bustos Molina - PANDAMAN - 
-Copyright (C) 2015  corpogen - Colombia
-
-The JavaScript code in this page is free software: you can
-redistribute it and/or modify it under the terms of the GNU
-General Public License (GNU GPL) as published by the Free Software
-Foundation, either version 3 of the License, or (at your option)
-any later version.  The code is distributed WITHOUT ANY WARRANTY;
-without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
-
-As additional permission under GNU GPL version 3 section 7, you
-may distribute non-source (e.g., minimized or compacted) forms of
-that code without the copy of the GNU GPL normally required by
-section 4, provided you include this license notice and a URL
-through which recipients can access the Corresponding Source.   
-
-
-@licend  The above is the entire license notice
-for the JavaScript code in this page.
-*/
-
 /**
- * render module.
-
- * Modulo para crear interfaces gráficas de html5 usando solo javascript, la inspiración
- * para crear este módulo viene de dos objetivos:
-
- 1. Los formularios, y en general páginas web deben ser construidas a partir de capas
- 1.2 Construir vistas seperadas de un lenguaje de servidor aprovechando las ventajas que ofrece 
-     el lenguaje javascript
- 2. Los parámetros, y eventos de un objeto cualquiera de la página deben estar en un mismo lugar
- 2.1 Con esto en mente planeo existan objetos reutilizables usando una sintaxis sencilla
- 2.2 Evitar el codigo mezclado de html+php al máximo
- 3. flexibilidad .... hacer cosas faciles pero libertad para hacer las cosas a mi manera
-
- * @module render
+ * renderJS module.
+ *
+ * @module renderJS
 */
-
-var eject = function(f, obj, args){
-  //funciones que inicien con doble linea abajo no se ejecutan
-  if(/^__/.test(f)){
-    obj.data(f, args);
-    return;
-  }
-  if(f in obj && typeof obj[f] === 'function'){
-    if(Array.isArray(args)){
-      obj[f].apply(obj, args);
-    }else{
-      obj[f](args);
-    }
-  } 
-};
-
-var ejectProperties = function(obj, properties, scenario){
-  for(var k in properties){
-    if(k === "content"){
-      $(obj).renderJS_obj(properties[k], scenario);
-    }else if(k === "renderJS" || k==="renderJS_obj"){
-      eject(k, $(obj), [properties[k], scenario]);
-    }else{
-      eject(k, $(obj), properties[k]);
-    }
-  }
-};
 
 (function ( $ ) {
+
+
+  /*
+  *************************************************************************
+  Private functions
+  *************************************************************************
+  */
+
+  /**
+  @param {string} f - Function name to run. if exist double underscore at the beginning the data is stored using data from jquery
+  @param {jQuery} obj - Object that evaluates the function.
+  @param {*} args - Arguments passed to the function, if it's an array elements are passed separately.
+  */
+  var evaluate = function(f, obj, args){
+    if(/^__/.test(f)){
+      obj.data(f, args);  //internal stored
+      return;
+    }
+    if(f in obj){
+      if(typeof obj[f] === 'function'){
+        if(Array.isArray(args)){
+          obj[f].apply(obj, args);
+        }else{
+          obj[f](args);
+        }
+      }else{
+        obj[f] = args;
+      }
+    }
+  };
+
+  /**
+  @param {jQuery} obj - Object evaluated.
+  @param {Object} properties - Object with properties to be evaluated.
+  @param {Object[]} [properties.content] - Array with nested objects.
+  @param {string} scenario - Scenario.
+  */
+  var evaluateProperties = function(obj, properties, scenario){
+    for(var k in properties){
+      if(k === "content"){
+        $(obj).renderJS_obj(properties[k], scenario);
+      }else if(k === "renderJS" || k==="renderJS_obj"){
+        evaluate(k, $(obj), [properties[k], scenario]);
+      }else{
+        evaluate(k, $(obj), properties[k]);
+      }
+    }
+  };
+
+  /*
+  *************************************************************************
+  Traits
+  *************************************************************************
+  */
 
   $.renderJS_traits = {};
 
   $.renderJS_traits.wrap = {
     afterAppend: function(scenario, o){
       var obj = $("<" + o.tag + ">");
-      ejectProperties(obj, o);    //siempre se debe ejecutar luego de que el objeto es creado
+      evaluateProperties(obj, o);    //siempre se debe ejecutar luego de que el objeto es creado
       $(this).wrap(obj);
     }
   };
@@ -83,7 +73,7 @@ var ejectProperties = function(obj, properties, scenario){
   $.renderJS_traits.wrapdiv = {
     afterAppend: function(scenario, o){
       var div = $("<div>");
-      ejectProperties(div, o);    //siempre se debe ejecutar luego de que el objeto es creado
+      evaluateProperties(div, o);    //siempre se debe ejecutar luego de que el objeto es creado
       $(this).wrap(div);
     }
   };
@@ -91,14 +81,19 @@ var ejectProperties = function(obj, properties, scenario){
   $.renderJS_traits.labeled = {
     afterAppend: function(scenario, o){
       var lbl = $("<label>");
-      ejectProperties(lbl, o);
+      evaluateProperties(lbl, o);
       $(this).wrap(lbl);
     }
   };
 
+  /*
+  *************************************************************************
+  Shortcuts
+  *************************************************************************
+  */
   $.renderJS_shortcuts = {};
 
-  //Initialice shortcuts for render module
+  //initializing shortcuts forms
   var shortcutstemp = ["hidden", "text", "password", "submit", "button", "checkbox", "radio",
                        "color", "date", "datetime", "datetime-local", "email", "month",
                        "number", "range", "search", "tel", "time", "url", "week"];
@@ -112,7 +107,7 @@ var ejectProperties = function(obj, properties, scenario){
     };
   }
 
-  //select, checkbox and radio has options argument for ease of use
+  //select has "options" argument for ease of use
   $.renderJS_shortcuts.select = {
     tag: "select",
     afterCreate: function(obj, scenario){
@@ -126,6 +121,26 @@ var ejectProperties = function(obj, properties, scenario){
     },
   };
 
+  $.renderJS_shortcuts.center = {
+    tag: "div",
+    afterAppend: function(scenario){
+      var w = $(this).parents().first().width();
+      var div = $("<div>").css({
+        "position": "relative",
+        "top": "50%",
+        "left": "50%",
+        "width": (w/2) + "px",
+        "margin": "0 0 0 -" + (w/4) + "px",
+        "height": "0px",
+        "display": "flex",
+        "justify-content": "center",
+        "align-items": "center",
+      });
+      $(this).wrap(div);
+    }
+  }
+  
+  /*
   $.renderJS_shortcuts.optionGroup = {
     beforeCreate: function(scenario){
       var re = /^([a-zA-Z0-9_]+)(#([a-zA-Z0-9_][a-zA-Z0-9_\.\-]*))?(\[([a-zA-Z_][a-zA-Z0-9_\.\-]*=[^,=]+(,[a-zA-Z_][a-zA-Z0-9_\.\-]*=[^,=]+)*)\])?$/; 
@@ -157,7 +172,7 @@ var ejectProperties = function(obj, properties, scenario){
       }
       return v;
     }
-  };
+  };*/
 
   //end initialice
 
@@ -175,8 +190,10 @@ var ejectProperties = function(obj, properties, scenario){
   };
 
   $.fn.renderJS_obj = function(obj, scenario){
-    var newobj = $.renderJS_obj(obj, scenario);
-    appendObj(this, newobj, scenario);
+    this.each(function(){
+      var newobj = $.renderJS_obj(obj, scenario);
+      appendObj($(this), newobj, scenario);
+    });
     return this;
   };
   
@@ -304,7 +321,7 @@ var ejectProperties = function(obj, properties, scenario){
             return;
           }
           var newobj = $.renderJS_obj(cloneobj, scenario);
-          ejectProperties(newobj, $.renderJS_shortcuts[type], scenario);
+          evaluateProperties(newobj, $.renderJS_shortcuts[type], scenario);
 
           if($.renderJS_shortcuts[type].afterCreate){
             $.renderJS_shortcuts[type].afterCreate.call(newobj, obj, scenario);
@@ -339,7 +356,7 @@ var ejectProperties = function(obj, properties, scenario){
         //Si el tipo es un shortcut entonces hay que construir tambien su esquema
         //y ejecutamos el evento aftercreate por si lo tiene.
         if($.renderJS_shortcuts[type]){
-          ejectProperties(newobj, $.renderJS_shortcuts[type], scenario);
+          evaluateProperties(newobj, $.renderJS_shortcuts[type], scenario);
           if($.renderJS_shortcuts[type].afterCreate){
             $.renderJS_shortcuts[type].afterCreate.call(newobj, obj, scenario);
           }
@@ -347,7 +364,7 @@ var ejectProperties = function(obj, properties, scenario){
             newobj.data("afterAppend", $.renderJS_shortcuts[type].afterAppend);
           }
         }
-        ejectProperties(newobj, obj, scenario);
+        evaluateProperties(newobj, obj, scenario);
 
         //Asignación de atributos dados en la cadena del type, estos valores tienen
         //prioridad
@@ -394,7 +411,9 @@ var ejectProperties = function(obj, properties, scenario){
   }
 
   $.fn.renderJS = function(options, scenario){
-    $.renderJS(this, options, scenario);
+    this.each(function(){
+      $.renderJS($(this), options, scenario);
+    });
     return this;
   };
   
