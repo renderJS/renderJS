@@ -51,13 +51,15 @@
 <!--renderJS example -->
 <script src="../../src/renderJS.js" type="text/javascript" charset="utf-8"></script>
 <script>
-  $("div").renderJS_obj([
-    {
-      type: "center",
-      text: "Hello World",
-      css: {
-        background: "red",
-      },
-    }
-  ]);
+  (function ( $ ) {
+    $("div").renderJS_obj([
+      {
+        type: "center",
+        text: "Hello World",
+        css: {
+          background: "red",
+        },
+      }
+    ]);
+  }( jQuery ));
 </script>

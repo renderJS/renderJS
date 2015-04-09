@@ -9,7 +9,9 @@
 <!--renderJS example -->
 <script src="../../src/renderJS.js" type="text/javascript" charset="utf-8"></script>
 <script>
-  $("body").renderJS_obj([
-    "Hello World!!!"
-  ]);
+  (function ( $ ) {
+    $("body").renderJS_obj([
+      "Hello World!!!"
+    ]);
+  }( jQuery ));
 </script>
